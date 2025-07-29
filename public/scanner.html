@@ -2,8 +2,9 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Escanear Producto</title>
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <style>
     * {
       box-sizing: border-box;
@@ -15,7 +16,7 @@
       height: 100%;
       overflow: hidden;
       font-family: sans-serif;
-      color: white;
+      background-color: black;
     }
 
     #reader {
@@ -30,15 +31,25 @@
 
     #overlay {
       position: absolute;
-      top: 0; left: 0;
+      top: 0;
+      left: 0;
       width: 100vw;
       height: 100vh;
-      background: rgba(0, 0, 0, 0.2);
       z-index: 2;
       display: flex;
       flex-direction: column;
+      justify-content: space-between;
       align-items: center;
-      justify-content: center;
+      padding: 30px 20px;
+      background-color: rgba(0, 0, 0, 0.3);
+    }
+
+    #texto-superior {
+      color: white;
+      font-size: 1.5rem;
+      font-weight: bold;
+      text-align: center;
+      margin-top: 10px;
     }
 
     #focus-box {
@@ -47,6 +58,22 @@
       border: 3px solid white;
       border-radius: 10px;
       background: rgba(255, 255, 255, 0.05);
+      margin-top: 60px;
+    }
+
+    #cancelar-btn {
+      background-color: #e74c3c;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      padding: 12px 30px;
+      cursor: pointer;
+      margin-bottom: 10px;
+    }
+
+    #cancelar-btn:hover {
+      background-color: #c0392b;
     }
 
     #loading {
@@ -55,36 +82,13 @@
       left: 0;
       width: 100vw;
       height: 100vh;
-      background: black;
+      background-color: black;
       color: white;
-      font-size: 1.2em;
       display: flex;
       align-items: center;
       justify-content: center;
       z-index: 5;
-    }
-
-    #countdown-overlay {
-      position: absolute;
-      top: 0; left: 0;
-      width: 100vw; height: 100vh;
-      background: rgba(0, 0, 0, 0.85);
-      z-index: 4;
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-    }
-
-    #countdown-text {
-      font-size: 1.5rem;
-      margin-bottom: 10px;
-      text-align: center;
-    }
-
-    #countdown-number {
-      font-size: 3rem;
-      font-weight: bold;
+      font-size: 1.2rem;
     }
   </style>
 </head>
@@ -93,65 +97,41 @@
   <div id="reader"></div>
 
   <div id="overlay">
+    <div id="texto-superior">Escanee el producto</div>
     <div id="focus-box"></div>
+    <button id="cancelar-btn" onclick="window.location.href='anadirProducto.html'">Cancelar</button>
   </div>
 
   <div id="loading">Iniciando escáner...</div>
 
-  <div id="countdown-overlay">
-    <div id="countdown-text">Código escaneado</div>
-    <div id="countdown-number">3</div>
-  </div>
-
-  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <script>
     const loading = document.getElementById("loading");
-    const overlay = document.getElementById("overlay");
-    const countdownOverlay = document.getElementById("countdown-overlay");
-    const countdownNumber = document.getElementById("countdown-number");
-
-    const html5QrcodeScanner = new Html5Qrcode("reader");
+    const html5QrScanner = new Html5Qrcode("reader");
     let scanned = false;
     let cameraId = null;
 
     function startScanner() {
       if (!cameraId) return;
 
-      html5QrcodeScanner.start(
+      html5QrScanner.start(
         cameraId,
         {
           fps: 10,
           qrbox: { width: 250, height: 250 }
         },
-        onScanSuccess
-      ).then(() => {
-        loading.style.display = "none";
-      }).catch(err => {
-        loading.textContent = "Error al iniciar escáner: " + err;
-      });
-    }
-
-    function onScanSuccess(decodedText, decodedResult) {
-      if (scanned) return;
-      scanned = true;
-
-      localStorage.setItem('producto_id', decodedText);
-
-      countdownOverlay.style.display = "flex";
-      let count = 3;
-      countdownNumber.textContent = count;
-
-      const intervalId = setInterval(() => {
-        count--;
-        countdownNumber.textContent = count;
-        if (count === 0) {
-          clearInterval(intervalId);
-          countdownOverlay.style.display = "none";
-          html5QrcodeScanner.stop().then(() => {
+        (decodedText) => {
+          if (scanned) return;
+          scanned = true;
+          localStorage.setItem("producto_id", decodedText);
+          html5QrScanner.stop().then(() => {
             window.location.href = "anadirProducto.html";
           });
         }
-      }, 1000);
+      ).then(() => {
+        loading.style.display = "none";
+      }).catch(err => {
+        loading.textContent = "Error al iniciar la cámara: " + err;
+      });
     }
 
     Html5Qrcode.getCameras().then(devices => {
@@ -159,19 +139,10 @@
         cameraId = devices.length > 1 ? devices[1].id : devices[0].id;
         startScanner();
       } else {
-        loading.textContent = "No se encontró cámara";
+        loading.textContent = "No se encontró ninguna cámara";
       }
     }).catch(err => {
       loading.textContent = "Error al obtener cámaras: " + err;
-    });
-
-    document.addEventListener('visibilitychange', () => {
-      if (!document.hidden && scanned) {
-        setTimeout(() => {
-          scanned = false;
-          startScanner();
-        }, 2000);
-      }
     });
   </script>
 </body>
