@@ -5,23 +5,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Escáner de Producto</title>
   <style>
-    body {
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
       margin: 0;
+      padding: 0;
+      height: 100%;
       background: black;
-      color: white;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
       font-family: sans-serif;
-      position: relative;
+      color: white;
     }
 
     #reader {
       width: 100%;
-      max-width: 400px;
+      max-width: 500px;
       margin: auto;
+      height: 100%;
     }
 
     #loading {
@@ -36,9 +37,20 @@
       z-index: 999;
     }
 
+    #texto-superior {
+      position: fixed;
+      top: 20px;
+      width: 100%;
+      text-align: center;
+      font-size: 1.5rem;
+      z-index: 1000;
+    }
+
     #cancelar-btn {
-      position: absolute;
-      bottom: 30px;
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
       background-color: #e74c3c;
       color: white;
       border: none;
@@ -51,14 +63,6 @@
 
     #cancelar-btn:hover {
       background-color: #c0392b;
-    }
-
-    #texto-superior {
-      position: absolute;
-      top: 20px;
-      text-align: center;
-      font-size: 1.5rem;
-      z-index: 1000;
     }
   </style>
 </head>
@@ -91,11 +95,7 @@
     function onScanSuccess(decodedText) {
       if (scanned) return;
       scanned = true;
-
-      // Guardar ID en localStorage
       localStorage.setItem('producto_id', decodedText);
-
-      // Detener escáner y volver
       html5QrcodeScanner.stop().then(() => {
         window.location.href = 'anadirProducto.html';
       });
