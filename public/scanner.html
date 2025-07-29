@@ -5,61 +5,98 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Escanear Producto</title>
   <style>
-    body {
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
       margin: 0;
-      background: black;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+      font-family: sans-serif;
       color: white;
+    }
+
+    #reader {
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 1;
+    }
+
+    #overlay {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.2);
+      z-index: 2;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      height: 100vh;
-      font-family: sans-serif;
-      position: relative;
     }
 
-    #reader {
-      width: 100%;
-      max-width: 400px;
-      margin: auto;
+    #focus-box {
+      width: 250px;
+      height: 250px;
+      border: 3px solid white;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.05);
     }
 
     #loading {
       position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
       background: black;
       color: white;
+      font-size: 1.2em;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.2em;
-      z-index: 999;
+      z-index: 5;
     }
 
     #countdown-overlay {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
+      position: absolute;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
       background: rgba(0, 0, 0, 0.85);
-      color: white;
-      font-size: 3em;
+      z-index: 4;
       display: none;
       flex-direction: column;
-      justify-content: center;
       align-items: center;
-      z-index: 1000;
+      justify-content: center;
     }
 
     #countdown-text {
-      font-size: 1.2em;
-      margin-bottom: 0.3em;
+      font-size: 1.5rem;
+      margin-bottom: 10px;
       text-align: center;
-      width: 100%;
+    }
+
+    #countdown-number {
+      font-size: 3rem;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
-  <div id="loading">Iniciando escáner...</div>
+
   <div id="reader"></div>
+
+  <div id="overlay">
+    <div id="focus-box"></div>
+  </div>
+
+  <div id="loading">Iniciando escáner...</div>
 
   <div id="countdown-overlay">
     <div id="countdown-text">Código escaneado</div>
@@ -69,6 +106,7 @@
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <script>
     const loading = document.getElementById("loading");
+    const overlay = document.getElementById("overlay");
     const countdownOverlay = document.getElementById("countdown-overlay");
     const countdownNumber = document.getElementById("countdown-number");
 
@@ -81,7 +119,10 @@
 
       html5QrcodeScanner.start(
         cameraId,
-        { fps: 10, qrbox: 250 },
+        {
+          fps: 10,
+          qrbox: { width: 250, height: 250 }
+        },
         onScanSuccess
       ).then(() => {
         loading.style.display = "none";
