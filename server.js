@@ -73,6 +73,12 @@ app.get('/api/productos/:id/precio', async (req, res) => {
   res.json({ id: producto.id, nombre: producto.nombre, precio: producto.precio });
 });
 
+// Obtener todos los productos
+app.get('/api/productos', async (req, res) => {
+  const productos = await leerProductos();
+  res.json(productos);
+});
+
 // ✏️ Modificar un producto
 app.put('/api/productos/:id', async (req, res) => {
   const { id } = req.params;
@@ -91,6 +97,24 @@ app.put('/api/productos/:id', async (req, res) => {
   await guardarProductos(productos);
   res.json({ mensaje: 'Producto actualizado' });
 });
+
+// Eliminar producto por ID
+app.delete('/api/productos/:id', async (req, res) => {
+  const { id } = req.params;
+
+  const productos = await leerProductos();
+  const index = productos.findIndex(p => p.id === id);
+
+  if (index === -1) {
+    return res.status(404).json({ error: 'Producto no encontrado' });
+  }
+
+  productos.splice(index, 1);
+  await guardarProductos(productos);
+
+  res.json({ mensaje: 'Producto eliminado correctamente' });
+});
+
 
 // 🏁 Iniciar servidor
 app.listen(PORT, () => {
