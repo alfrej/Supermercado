@@ -23,6 +23,7 @@
     }
 
     .product-card {
+      position: relative;
       background-color: white;
       border-radius: 12px;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -42,17 +43,25 @@
     .product-price {
       color: #27ae60;
       font-size: 1rem;
-      margin-bottom: 12px;
     }
 
     .delete-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 32px;
+      height: 32px;
+      border-radius: 4px;
       background-color: #e74c3c;
       color: white;
+      font-weight: bold;
       border: none;
-      padding: 10px 20px;
-      border-radius: 8px;
-      font-size: 0.95rem;
       cursor: pointer;
+      font-size: 1rem;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .delete-btn:hover {
@@ -79,6 +88,13 @@
       opacity: 1;
       pointer-events: auto;
     }
+
+    .mensaje-vacio {
+      text-align: center;
+      font-size: 1.1rem;
+      color: #666;
+      margin-top: 20px;
+    }
   </style>
 </head>
 <body>
@@ -99,20 +115,32 @@
       setTimeout(() => toast.classList.remove('show'), 3000);
     }
 
+    function formatearEuros(valor) {
+      return new Intl.NumberFormat('es-ES', {
+        style: 'currency',
+        currency: 'EUR'
+      }).format(valor);
+    }
+
     async function cargarProductos() {
       try {
         const res = await fetch('/api/productos');
         const productos = await res.json();
         lista.innerHTML = '';
 
+        if (!productos.length) {
+          lista.innerHTML = `<div class="mensaje-vacio">No hay productos disponibles actualmente.</div>`;
+          return;
+        }
+
         productos.forEach(p => {
           const card = document.createElement('div');
           card.className = 'product-card';
 
           card.innerHTML = `
+            <button class="delete-btn" title="Borrar" onclick="borrarProducto('${p.id}')">×</button>
             <div class="product-name">${p.nombre}</div>
-            <div class="product-price">Precio: $${p.precio.toFixed(2)}</div>
-            <button class="delete-btn" onclick="borrarProducto('${p.id}')">Borrar</button>
+            <div class="product-price">${formatearEuros(p.precio)}</div>
           `;
 
           lista.appendChild(card);
