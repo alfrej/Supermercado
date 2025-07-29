@@ -5,17 +5,22 @@
   <title>Añadir Producto</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       font-family: Arial, sans-serif;
       background-color: #f2f2f2;
       display: flex;
       justify-content: center;
+      align-items: flex-start;
       padding: 40px 20px;
     }
 
     .form-card {
       background-color: white;
-      padding: 30px 20px;
+      padding: 30px;
       border-radius: 12px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
       width: 100%;
@@ -41,7 +46,7 @@
     input[type="text"],
     input[type="number"] {
       width: 100%;
-      padding: 10px;
+      padding: 12px;
       border-radius: 6px;
       border: 1px solid #ccc;
       font-size: 1rem;
@@ -50,13 +55,15 @@
     .button {
       display: block;
       width: 100%;
-      padding: 12px;
-      margin-top: 15px;
+      padding: 14px;
+      margin-top: 10px;
       border: none;
       border-radius: 8px;
       font-size: 1rem;
       cursor: pointer;
       text-align: center;
+      transition: background-color 0.2s;
+      text-decoration: none;
     }
 
     .scan-button {
@@ -78,19 +85,50 @@
     }
 
     .home-btn {
-      background-color: #95a5a6;
-      color: white;
+      background-color: #f4e04d; /* Amarillo crema */
+      color: #333;
     }
 
     .home-btn:hover {
-      background-color: #7f8c8d;
+      background-color: #e6d442;
     }
 
     #product-id {
       text-align: center;
-      margin-top: 10px;
+      margin-top: 12px;
       font-weight: bold;
       color: #2c3e50;
+      word-break: break-word;
+    }
+
+    /* Toast Styles */
+    #toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #333;
+      color: white;
+      padding: 14px 24px;
+      border-radius: 8px;
+      font-size: 1rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease;
+      z-index: 999;
+    }
+
+    #toast.success {
+      background-color: #2ecc71;
+    }
+
+    #toast.error {
+      background-color: #e74c3c;
+    }
+
+    #toast.show {
+      opacity: 1;
+      pointer-events: auto;
     }
   </style>
 </head>
@@ -121,26 +159,40 @@
     <button class="button home-btn" onclick="window.location.href='index.html'">Volver al Inicio</button>
   </div>
 
+  <div id="toast"></div>
+
   <script>
-    const scannedId = localStorage.getItem('producto_id');
     const idSpan = document.getElementById('id-value');
+    const toast = document.getElementById('toast');
+
+    // Mostrar ID escaneado si existe
+    const scannedId = localStorage.getItem('producto_id');
     if (scannedId) {
       idSpan.textContent = scannedId;
     }
 
+    // Mostrar toast
+    function showToast(message, type = 'success') {
+      toast.textContent = message;
+      toast.className = `show ${type}`;
+      setTimeout(() => {
+        toast.className = toast.className.replace('show', '');
+      }, 3000);
+    }
+
+    // Manejar envío del formulario
     document.getElementById('form-producto').addEventListener('submit', async (e) => {
       e.preventDefault();
 
       const id = localStorage.getItem('producto_id');
-      const nombre = document.getElementById('nombre').value;
+      const nombre = document.getElementById('nombre').value.trim();
       const precio = parseFloat(document.getElementById('precio').value);
 
       if (!id) {
-        alert('Debes escanear el producto primero.');
+        showToast('Debes escanear el producto primero.', 'error');
         return;
       }
 
-      // Verifica si existe
       const res = await fetch(`/api/productos/${id}/precio`);
       let sobreescribir = true;
 
@@ -159,12 +211,12 @@
       const result = await response.json();
 
       if (response.ok) {
-        alert('Producto guardado correctamente.');
+        showToast('Producto guardado correctamente.', 'success');
         localStorage.removeItem('producto_id');
         idSpan.textContent = "Sin escanear";
         document.getElementById('form-producto').reset();
       } else {
-        alert('Error: ' + result.error);
+        showToast('Error: ' + result.error, 'error');
       }
     });
   </script>
