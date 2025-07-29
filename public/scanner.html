@@ -1,66 +1,137 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Escanear Código QR</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Escanear Producto</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background-color: #f0f0f0;
-      padding: 20px;
-      text-align: center;
-    }
-
-    h2 {
-      margin-bottom: 20px;
-      color: #333;
+      margin: 0;
+      background: black;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      font-family: sans-serif;
+      position: relative;
     }
 
     #reader {
-      width: 300px;
-      margin: 0 auto;
+      width: 100%;
+      max-width: 400px;
+      margin: auto;
     }
 
-    #mensaje {
-      margin-top: 20px;
-      font-weight: bold;
-      color: green;
+    #loading {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: black;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2em;
+      z-index: 999;
+    }
+
+    #countdown-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.85);
+      color: white;
+      font-size: 3em;
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    #countdown-text {
+      font-size: 1.2em;
+      margin-bottom: 0.3em;
+      text-align: center;
+      width: 100%;
     }
   </style>
 </head>
 <body>
-
-  <h2>Escanear Código QR</h2>
+  <div id="loading">Iniciando escáner...</div>
   <div id="reader"></div>
-  <div id="mensaje"></div>
 
+  <div id="countdown-overlay">
+    <div id="countdown-text">Código escaneado</div>
+    <div id="countdown-number">3</div>
+  </div>
+
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <script>
-    function onScanSuccess(qrCodeMessage) {
-      // Guardar el ID escaneado
-      localStorage.setItem('producto_id', qrCodeMessage);
-      document.getElementById('mensaje').innerText = `Código escaneado: ${qrCodeMessage}`;
-      
-      // Detener escaneo y volver a anadirProducto.html
-      setTimeout(() => {
-        window.location.href = 'anadirProducto.html';
+    const loading = document.getElementById("loading");
+    const countdownOverlay = document.getElementById("countdown-overlay");
+    const countdownNumber = document.getElementById("countdown-number");
+
+    const html5QrcodeScanner = new Html5Qrcode("reader");
+    let scanned = false;
+    let cameraId = null;
+
+    function startScanner() {
+      if (!cameraId) return;
+
+      html5QrcodeScanner.start(
+        cameraId,
+        { fps: 10, qrbox: 250 },
+        onScanSuccess
+      ).then(() => {
+        loading.style.display = "none";
+      }).catch(err => {
+        loading.textContent = "Error al iniciar escáner: " + err;
+      });
+    }
+
+    function onScanSuccess(decodedText, decodedResult) {
+      if (scanned) return;
+      scanned = true;
+
+      localStorage.setItem('producto_id', decodedText);
+
+      countdownOverlay.style.display = "flex";
+      let count = 3;
+      countdownNumber.textContent = count;
+
+      const intervalId = setInterval(() => {
+        count--;
+        countdownNumber.textContent = count;
+        if (count === 0) {
+          clearInterval(intervalId);
+          countdownOverlay.style.display = "none";
+          html5QrcodeScanner.stop().then(() => {
+            window.location.href = "anadirProducto.html";
+          });
+        }
       }, 1000);
     }
 
-    new Html5Qrcode("reader")
-      .start(
-        { facingMode: "environment" },
-        {
-          fps: 10,
-          qrbox: 250
-        },
-        onScanSuccess
-      )
-      .catch(err => {
-        console.error(err);
-        alert("No se pudo acceder a la cámara.");
-      });
+    Html5Qrcode.getCameras().then(devices => {
+      if (devices && devices.length) {
+        cameraId = devices.length > 1 ? devices[1].id : devices[0].id;
+        startScanner();
+      } else {
+        loading.textContent = "No se encontró cámara";
+      }
+    }).catch(err => {
+      loading.textContent = "Error al obtener cámaras: " + err;
+    });
+
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden && scanned) {
+        setTimeout(() => {
+          scanned = false;
+          startScanner();
+        }, 2000);
+      }
+    });
   </script>
 </body>
 </html>
