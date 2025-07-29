@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ticket de compra</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: #f8f8f8;
+      font-family: 'Courier New', Courier, monospace;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    .ticket {
+      background: white;
+      margin: 20px auto 100px;
+      padding: 30px 20px;
+      width: 90%;
+      max-width: 400px;
+      border: 1px dashed #999;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .ticket h1 {
+      text-align: center;
+      font-size: 1.2rem;
+      margin-bottom: 20px;
+    }
+
+    .ticket-line {
+      display: flex;
+      justify-content: space-between;
+      font-size: 1rem;
+      padding: 4px 0;
+      border-bottom: 1px dashed #ddd;
+    }
+
+    .ticket-total {
+      margin-top: 20px;
+      font-weight: bold;
+      font-size: 1.1rem;
+      border-top: 2px solid black;
+      padding-top: 10px;
+    }
+
+    .footer-fixed {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #fff;
+      border-top: 1px solid #ccc;
+      padding: 15px;
+      text-align: center;
+      box-shadow: 0 -2px 6px rgba(0,0,0,0.1);
+    }
+
+    .footer-fixed button {
+      padding: 12px 24px;
+      font-size: 1rem;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .footer-fixed button:hover {
+      background-color: #2980b9;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="ticket" id="ticket">
+    <h1>🛒 Mi Súper - Ticket</h1>
+    <!-- Productos se insertarán aquí -->
+  </div>
+
+  <div class="footer-fixed">
+    <button onclick="nuevaCompra()">Nueva compra</button>
+  </div>
+
+  <script>
+    function formatearEuros(valor) {
+      return new Intl.NumberFormat('es-ES', {
+        style: 'currency',
+        currency: 'EUR'
+      }).format(valor);
+    }
+
+    function cargarTicket() {
+      const ticketEl = document.getElementById('ticket');
+      const productos = JSON.parse(localStorage.getItem('compra_realizada')) || [];
+
+      if (productos.length === 0) {
+        ticketEl.innerHTML += `<p>No hay productos en esta compra.</p>`;
+        return;
+      }
+
+      let total = 0;
+
+      productos.forEach(p => {
+        const linea = document.createElement('div');
+        linea.className = 'ticket-line';
+        linea.innerHTML = `
+          <span>${p.nombre}</span>
+          <span>${formatearEuros(p.precio)}</span>
+        `;
+        ticketEl.appendChild(linea);
+        total += p.precio;
+      });
+
+      const totalEl = document.createElement('div');
+      totalEl.className = 'ticket-line ticket-total';
+      totalEl.innerHTML = `
+        <span>Total:</span>
+        <span>${formatearEuros(total)}</span>
+      `;
+      ticketEl.appendChild(totalEl);
+    }
+
+    function nuevaCompra() {
+      localStorage.removeItem('compra_realizada');
+      window.location.href = 'compra.html';
+    }
+
+    cargarTicket();
+  </script>
+
+</body>
+</html>
