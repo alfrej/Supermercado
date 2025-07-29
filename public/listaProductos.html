@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Productos</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 40px 20px;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f2f2f2;
+    }
+
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+      margin-bottom: 30px;
+    }
+
+    .product-card {
+      background-color: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      margin-bottom: 20px;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .product-name {
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    .product-price {
+      color: #27ae60;
+      font-size: 1rem;
+      margin-bottom: 12px;
+    }
+
+    .delete-btn {
+      background-color: #e74c3c;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      cursor: pointer;
+    }
+
+    .delete-btn:hover {
+      background-color: #c0392b;
+    }
+
+    #toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #333;
+      color: white;
+      padding: 14px 24px;
+      border-radius: 8px;
+      font-size: 1rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease;
+      z-index: 999;
+    }
+
+    #toast.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Productos</h1>
+
+  <div id="lista-productos"></div>
+
+  <div id="toast"></div>
+
+  <script>
+    const lista = document.getElementById('lista-productos');
+    const toast = document.getElementById('toast');
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    async function cargarProductos() {
+      try {
+        const res = await fetch('/api/productos');
+        const productos = await res.json();
+        lista.innerHTML = '';
+
+        productos.forEach(p => {
+          const card = document.createElement('div');
+          card.className = 'product-card';
+
+          card.innerHTML = `
+            <div class="product-name">${p.nombre}</div>
+            <div class="product-price">Precio: $${p.precio.toFixed(2)}</div>
+            <button class="delete-btn" onclick="borrarProducto('${p.id}')">Borrar</button>
+          `;
+
+          lista.appendChild(card);
+        });
+
+      } catch (error) {
+        showToast('Error al cargar productos');
+      }
+    }
+
+    async function borrarProducto(id) {
+      const confirmar = confirm('¿Estás seguro de que quieres borrar este producto?');
+
+      if (!confirmar) return;
+
+      try {
+        const res = await fetch(`/api/productos/${id}`, { method: 'DELETE' });
+        if (res.ok) {
+          showToast('Producto borrado');
+          cargarProductos();
+        } else {
+          showToast('No se pudo borrar el producto');
+        }
+      } catch (err) {
+        showToast('Error al borrar');
+      }
+    }
+
+    cargarProductos();
+  </script>
+
+</body>
+</html>
