@@ -39,7 +39,6 @@
       flex-direction: column;
       justify-content: space-between;
       padding: 16px;
-      z-index: 10;
     }
 
     .status-row {
@@ -112,11 +111,14 @@
   </div>
 
   <div id="toast" class="toast"></div>
+  <audio id="beep" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg" preload="auto"></audio>
 
   <script>
     const html5QrScanner = new Html5Qrcode("reader");
     let scannedProducts = [];
     const toast = document.getElementById("toast");
+    const beep = document.getElementById("beep");
+    const lastScanTime = {};
 
     async function startScanner() {
       const cameras = await Html5Qrcode.getCameras();
@@ -129,8 +131,10 @@
     }
 
     async function onScanSuccess(decodedText) {
-      if (scannedProducts.find(p => p.id === decodedText)) {
-        showToast("Producto ya escaneado");
+      const now = Date.now();
+
+      // Ignorar escaneo repetido si han pasado menos de 10 segundos
+      if (lastScanTime[decodedText] && now - lastScanTime[decodedText] < 10000) {
         return;
       }
 
@@ -145,7 +149,10 @@
           precio: producto.precio
         });
 
+        lastScanTime[decodedText] = now;
+
         actualizarTotales();
+        beep.play();
         showToast(`Añadido: ${producto.nombre}`);
       } catch (err) {
         showToast("Producto no encontrado");
