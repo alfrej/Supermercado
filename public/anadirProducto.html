@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Añadir Producto</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f2f2f2;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 40px 20px;
+    }
+
+    .form-card {
+      background-color: white;
+      padding: 30px 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 400px;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+    }
+
+    input[type="text"],
+    input[type="number"] {
+      width: 100%;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+    }
+
+    .scan-button {
+      display: block;
+      background-color: #3498db;
+      color: white;
+      padding: 12px;
+      border-radius: 8px;
+      text-align: center;
+      font-size: 1rem;
+      margin: 0 auto 10px auto;
+      text-decoration: none;
+      width: 100%;
+      max-width: 100%;
+    }
+
+    .scan-button:hover {
+      background-color: #2980b9;
+    }
+
+    #product-id {
+      text-align: center;
+      margin-top: 10px;
+      font-weight: bold;
+      color: #2c3e50;
+    }
+
+    .submit-btn {
+      background-color: #2ecc71;
+      color: white;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      width: 100%;
+      cursor: pointer;
+    }
+
+    .submit-btn:hover {
+      background-color: #27ae60;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="form-card">
+    <h2>Añadir Producto</h2>
+
+    <div class="form-group">
+      <a href="scanner.html" class="scan-button">Escanear Producto</a>
+      <div id="product-id">ID: <span id="id-value">Sin escanear</span></div>
+    </div>
+
+    <form id="form-producto">
+      <div class="form-group">
+        <label for="nombre">Nombre del producto:</label>
+        <input type="text" id="nombre" name="nombre" required />
+      </div>
+
+      <div class="form-group">
+        <label for="precio">Precio:</label>
+        <input type="number" id="precio" name="precio" step="0.01" required />
+      </div>
+
+      <input type="submit" class="submit-btn" value="Añadir Producto" />
+    </form>
+  </div>
+
+  <script>
+    // Mostrar ID escaneado si existe
+    const scannedId = localStorage.getItem('producto_id');
+    if (scannedId) {
+      document.getElementById('id-value').innerText = scannedId;
+    }
+
+    // Envío del formulario
+    document.getElementById('form-producto').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const id = localStorage.getItem('producto_id');
+      const nombre = document.getElementById('nombre').value;
+      const precio = parseFloat(document.getElementById('precio').value);
+
+      if (!id) {
+        alert('Debes escanear el producto primero.');
+        return;
+      }
+
+      const response = await fetch('/api/productos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, nombre, precio })
+      });
+
+      const result = await response.json();
+      if (response.ok) {
+        alert('Producto añadido correctamente.');
+        localStorage.removeItem('producto_id');
+        window.location.href = '/';
+      } else {
+        alert('Error: ' + result.error);
+      }
+    });
+  </script>
+</body>
+</html>

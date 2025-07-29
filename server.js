@@ -4,11 +4,23 @@ const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Ruta al archivo JSON que guarda los productos
 const DATA_FILE = path.join(__dirname, 'productos.json');
 
+// Middleware para parsear JSON
 app.use(express.json());
 
-// Leer todos los productos
+// Servir archivos estáticos desde la carpeta public
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Ruta raíz que entrega index.html directamente (opcional si usas archivos estáticos bien)
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// === Funciones para leer y guardar productos ===
+
 async function leerProductos() {
   try {
     const data = await fs.readFile(DATA_FILE, 'utf-8');
@@ -18,21 +30,23 @@ async function leerProductos() {
   }
 }
 
-// Guardar productos
 async function guardarProductos(productos) {
   await fs.writeFile(DATA_FILE, JSON.stringify(productos, null, 2));
 }
 
-// ➕ Añadir un producto
-app.post('/productos', async (req, res) => {
+// === Rutas del API REST ===
+
+// ➕ Añadir producto
+app.post('/api/productos', async (req, res) => {
   const { id, nombre, precio } = req.body;
-  if (!id || !nombre || !precio) {
-    return res.status(400).json({ error: 'Faltan campos obligatorios' });
+
+  if (!id || !nombre || precio === undefined) {
+    return res.status(400).json({ error: 'Faltan campos: id, nombre o precio' });
   }
 
   const productos = await leerProductos();
   if (productos.find(p => p.id === id)) {
-    return res.status(409).json({ error: 'Producto ya existe' });
+    return res.status(409).json({ error: 'El producto ya existe' });
   }
 
   productos.push({ id, nombre, precio });
@@ -40,8 +54,8 @@ app.post('/productos', async (req, res) => {
   res.status(201).json({ mensaje: 'Producto añadido' });
 });
 
-// 🔍 Consultar el precio de un producto por ID
-app.get('/productos/:id/precio', async (req, res) => {
+// 🔍 Obtener precio por ID
+app.get('/api/productos/:id/precio', async (req, res) => {
   const { id } = req.params;
   const productos = await leerProductos();
   const producto = productos.find(p => p.id === id);
@@ -54,7 +68,7 @@ app.get('/productos/:id/precio', async (req, res) => {
 });
 
 // ✏️ Modificar un producto
-app.put('/productos/:id', async (req, res) => {
+app.put('/api/productos/:id', async (req, res) => {
   const { id } = req.params;
   const { nombre, precio } = req.body;
 
@@ -74,5 +88,5 @@ app.put('/productos/:id', async (req, res) => {
 
 // 🏁 Iniciar servidor
 app.listen(PORT, () => {
-  console.log(`Servidor escuchando en http://localhost:${PORT}`);
+  console.log(`Servidor corriendo en http://localhost:${PORT}`);
 });
