@@ -5,16 +5,11 @@
   <title>Añadir Producto</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
-    * {
-      box-sizing: border-box;
-    }
-
     body {
       font-family: Arial, sans-serif;
       background-color: #f2f2f2;
       display: flex;
       justify-content: center;
-      align-items: center;
       padding: 40px 20px;
     }
 
@@ -52,22 +47,43 @@
       font-size: 1rem;
     }
 
-    .scan-button {
+    .button {
       display: block;
+      width: 100%;
+      padding: 12px;
+      margin-top: 15px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .scan-button {
       background-color: #3498db;
       color: white;
-      padding: 12px;
-      border-radius: 8px;
-      text-align: center;
-      font-size: 1rem;
-      margin: 0 auto 10px auto;
-      text-decoration: none;
-      width: 100%;
-      max-width: 100%;
     }
 
     .scan-button:hover {
       background-color: #2980b9;
+    }
+
+    .submit-btn {
+      background-color: #2ecc71;
+      color: white;
+    }
+
+    .submit-btn:hover {
+      background-color: #27ae60;
+    }
+
+    .home-btn {
+      background-color: #95a5a6;
+      color: white;
+    }
+
+    .home-btn:hover {
+      background-color: #7f8c8d;
     }
 
     #product-id {
@@ -75,21 +91,6 @@
       margin-top: 10px;
       font-weight: bold;
       color: #2c3e50;
-    }
-
-    .submit-btn {
-      background-color: #2ecc71;
-      color: white;
-      padding: 12px;
-      border: none;
-      border-radius: 8px;
-      font-size: 1rem;
-      width: 100%;
-      cursor: pointer;
-    }
-
-    .submit-btn:hover {
-      background-color: #27ae60;
     }
   </style>
 </head>
@@ -99,7 +100,7 @@
     <h2>Añadir Producto</h2>
 
     <div class="form-group">
-      <a href="scanner.html" class="scan-button">Escanear Producto</a>
+      <a href="scanner.html" class="button scan-button">Escanear Producto</a>
       <div id="product-id">ID: <span id="id-value">Sin escanear</span></div>
     </div>
 
@@ -114,18 +115,19 @@
         <input type="number" id="precio" name="precio" step="0.01" required />
       </div>
 
-      <input type="submit" class="submit-btn" value="Añadir Producto" />
+      <input type="submit" class="button submit-btn" value="Guardar Producto" />
     </form>
+
+    <button class="button home-btn" onclick="window.location.href='index.html'">Volver al Inicio</button>
   </div>
 
   <script>
-    // Mostrar ID escaneado si existe
     const scannedId = localStorage.getItem('producto_id');
+    const idSpan = document.getElementById('id-value');
     if (scannedId) {
-      document.getElementById('id-value').innerText = scannedId;
+      idSpan.textContent = scannedId;
     }
 
-    // Envío del formulario
     document.getElementById('form-producto').addEventListener('submit', async (e) => {
       e.preventDefault();
 
@@ -138,6 +140,16 @@
         return;
       }
 
+      // Verifica si existe
+      const res = await fetch(`/api/productos/${id}/precio`);
+      let sobreescribir = true;
+
+      if (res.ok) {
+        sobreescribir = confirm('Este ID ya está en uso. ¿Quieres sobrescribir el producto?');
+      }
+
+      if (!sobreescribir) return;
+
       const response = await fetch('/api/productos', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -145,10 +157,12 @@
       });
 
       const result = await response.json();
+
       if (response.ok) {
-        alert('Producto añadido correctamente.');
+        alert('Producto guardado correctamente.');
         localStorage.removeItem('producto_id');
-        window.location.href = '/';
+        idSpan.textContent = "Sin escanear";
+        document.getElementById('form-producto').reset();
       } else {
         alert('Error: ' + result.error);
       }

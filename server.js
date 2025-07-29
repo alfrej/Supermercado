@@ -36,7 +36,7 @@ async function guardarProductos(productos) {
 
 // === Rutas del API REST ===
 
-// ➕ Añadir producto
+// Añadir o sobrescribir producto
 app.post('/api/productos', async (req, res) => {
   const { id, nombre, precio } = req.body;
 
@@ -45,14 +45,20 @@ app.post('/api/productos', async (req, res) => {
   }
 
   const productos = await leerProductos();
-  if (productos.find(p => p.id === id)) {
-    return res.status(409).json({ error: 'El producto ya existe' });
+  const index = productos.findIndex(p => p.id === id);
+
+  if (index !== -1) {
+    // Ya existe → sobrescribir
+    productos[index] = { id, nombre, precio };
+  } else {
+    // Nuevo producto
+    productos.push({ id, nombre, precio });
   }
 
-  productos.push({ id, nombre, precio });
   await guardarProductos(productos);
-  res.status(201).json({ mensaje: 'Producto añadido' });
+  res.status(201).json({ mensaje: 'Producto guardado correctamente' });
 });
+
 
 // 🔍 Obtener precio por ID
 app.get('/api/productos/:id/precio', async (req, res) => {
