@@ -6,102 +6,61 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <style>
-    * {
-      box-sizing: border-box;
-    }
-
-    body, html {
-      margin: 0;
-      padding: 0;
+    body {
       font-family: Arial, sans-serif;
-      height: 100vh;
-      background-color: rgba(0, 0, 0, 0.8);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      position: relative;
-    }
-
-    #reader-container {
-      position: relative;
-      width: 300px;
-      height: 300px;
-    }
-
-    #reader {
-      width: 100%;
-      height: 100%;
-      border-radius: 16px;
-      overflow: hidden;
-      position: relative;
-    }
-
-    .focus-box {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 180px;
-      height: 180px;
-      background-color: rgba(255, 255, 255, 0.2);
-      border: 3px solid white;
-      border-radius: 8px;
-      transform: translate(-50%, -50%);
-      z-index: 10;
-      pointer-events: none;
+      background-color: #f0f0f0;
+      padding: 20px;
+      text-align: center;
     }
 
     h2 {
-      position: absolute;
-      top: 20px;
-      color: white;
-      text-align: center;
-      width: 100%;
-      font-size: 1.5rem;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    #reader {
+      width: 300px;
+      margin: 0 auto;
     }
 
     #mensaje {
-      position: absolute;
-      bottom: 30px;
-      color: #2ecc71;
+      margin-top: 20px;
       font-weight: bold;
-      font-size: 1rem;
-      background-color: rgba(0, 0, 0, 0.5);
-      padding: 10px 20px;
-      border-radius: 8px;
+      color: green;
     }
   </style>
 </head>
 <body>
 
-  <h2>Escanea el Código QR del Producto</h2>
-
-  <div id="reader-container">
-    <div id="reader"></div>
-    <div class="focus-box"></div>
-  </div>
-
+  <h2>Escanear Código QR</h2>
+  <div id="reader"></div>
   <div id="mensaje"></div>
 
   <script>
     function onScanSuccess(qrCodeMessage) {
+      // Guardar el ID escaneado
       localStorage.setItem('producto_id', qrCodeMessage);
       document.getElementById('mensaje').innerText = `Código escaneado: ${qrCodeMessage}`;
+      
+      // Detener escaneo y volver a anadirProducto.html
       setTimeout(() => {
         window.location.href = 'anadirProducto.html';
       }, 1000);
     }
 
-    new Html5Qrcode("reader").start(
-      { facingMode: "environment" },
-      {
-        fps: 10,
-        qrbox: 250
-      },
-      onScanSuccess
-    ).catch(err => {
-      console.error(err);
-      alert("No se pudo acceder a la cámara.");
-    });
+    new Html5Qrcode("reader")
+      .start(
+        { facingMode: "environment" },
+        {
+          fps: 10,
+          qrbox: 250
+        },
+        onScanSuccess
+      )
+      .catch(err => {
+        console.error(err);
+        alert("No se pudo acceder a la cámara.");
+      });
   </script>
 </body>
 </html>
