@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Compra</title>
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <style>
@@ -14,51 +14,48 @@
       margin: 0;
       padding: 0;
       height: 100%;
-      background: black;
       font-family: sans-serif;
+      background: #000;
       color: white;
-      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #scanner {
+      height: 75vh;
+      width: 100%;
+      position: relative;
+      background: black;
     }
 
     #reader {
-      width: 100vw;
-      height: 100vh;
+      width: 100%;
+      height: 100%;
       object-fit: cover;
-      position: absolute;
-      top: 0;
-      left: 0;
-      z-index: 1;
     }
 
-    #overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      z-index: 2;
+    #info-panel {
+      height: 25vh;
+      background-color: #111;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      padding: 20px;
-      background-color: rgba(0, 0, 0, 0.2);
+      padding: 16px;
     }
 
-    .bottom-info {
+    .status-row {
       display: flex;
       justify-content: space-between;
-      align-items: center;
       font-size: 1.2rem;
-      padding: 10px;
+      margin-bottom: 10px;
     }
 
-    .bottom-buttons {
+    .button-row {
       display: flex;
-      justify-content: space-between;
       gap: 10px;
     }
 
-    .bottom-buttons button {
+    .button-row button {
       flex: 1;
       padding: 14px;
       font-size: 1rem;
@@ -79,7 +76,7 @@
 
     .toast {
       position: fixed;
-      bottom: 80px;
+      bottom: 30%;
       left: 50%;
       transform: translateX(-50%);
       background-color: #333;
@@ -100,19 +97,18 @@
 </head>
 <body>
 
-  <div id="reader"></div>
+  <div id="scanner">
+    <div id="reader"></div>
+  </div>
 
-  <div id="overlay">
-    <div></div> <!-- Espaciador superior -->
-    <div>
-      <div class="bottom-info">
-        <div id="contador">Productos: 0</div>
-        <div id="total">Total: 0,00 €</div>
-      </div>
-      <div class="bottom-buttons">
-        <button class="cancel-btn" onclick="cancelarCompra()">Cancelar compra</button>
-        <button class="finish-btn" onclick="terminarCompra()">Terminar compra</button>
-      </div>
+  <div id="info-panel">
+    <div class="status-row">
+      <div id="contador">Productos: 0</div>
+      <div id="total">Total: 0,00 €</div>
+    </div>
+    <div class="button-row">
+      <button class="cancel-btn" onclick="cancelarCompra()">Cancelar compra</button>
+      <button class="finish-btn" onclick="terminarCompra()">Terminar compra</button>
     </div>
   </div>
 
@@ -152,7 +148,6 @@
 
         actualizarTotales();
         showToast(`Añadido: ${producto.nombre}`);
-
       } catch (err) {
         showToast("Producto no encontrado");
       }
@@ -180,7 +175,9 @@
     function cancelarCompra() {
       const confirmar = confirm("¿Seguro que quieres cancelar la compra?");
       if (confirmar) {
-        window.location.href = "index.html";
+        html5QrScanner.stop().then(() => {
+          window.location.href = "index.html";
+        });
       }
     }
 
